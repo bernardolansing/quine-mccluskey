@@ -1,20 +1,32 @@
 use csv::Reader;
 
 pub struct TruthTable {
-    headers: Vec<String>,
-    values: Vec<Vec<bool>>
+    variables: Vec<String>,
+    inputs: Vec<Vec<bool>>,
+    output: Vec<bool>
 }
 
 impl TruthTable {
-    pub fn print_table(self) {
-        self.headers.iter().for_each(|h| print!("{h}\t"));
+    pub fn print_table(&self) {
+        self.variables.iter().for_each(|h| print!("{h}\t"));
         println!();
-        self.values.iter().for_each(
-            |row| {
+        self.inputs.iter().enumerate().for_each(
+            |(index, row)| {
                 row.iter().for_each(|cell| print!("{} \t", *cell as i8));
+                print!("{}", self.output[index] as i8);
                 println!();
             }
         );
+    }
+
+    pub fn get_header_at(&self, index: usize) -> &String {
+        match self.variables.get(index) {
+            Some(s) => s,
+            None => panic!(
+                "Failed to access table header. Tried to get [{index}] but size is {}",
+                self.variables.len()
+            )
+        }
     }
 }
 
@@ -32,9 +44,17 @@ pub fn read_csv(path: &str) -> TruthTable {
                 .collect()
         ).collect();
 
-    assert_ascending_order(&values);
+    let inputs: Vec<Vec<bool>> = values.iter().map(
+        |row| row[..row.len() - 1].to_vec()
+    ).collect();
 
-    TruthTable { headers, values }
+    let output = values.iter().map(
+        |row| *row.last().expect("Error while extracting output")
+    ).collect();
+
+    assert_ascending_order(&inputs);
+
+    TruthTable { variables: headers, inputs, output }
 }
 
 fn turn_input_into_boolean(c: &str) -> bool {
@@ -65,14 +85,10 @@ fn convert_boolean_row_to_number(row: &[bool]) -> usize {
 }
 
 // check if inputs where provided in ascending order
-fn assert_ascending_order(table_body: &Vec<Vec<bool>>) -> bool {
-    for (expected_value, row) in table_body.iter().enumerate() {
-        // we must discard the last item of each row, since that is the output
-        let slice = &row[..row.len() - 1];
-        if expected_value != convert_boolean_row_to_number(slice) {
+fn assert_ascending_order(inputs: &Vec<Vec<bool>>) {
+    for (expected_value, row) in inputs.iter().enumerate() {
+        if expected_value != convert_boolean_row_to_number(row) {
             panic!("Inputs were not provided in ascending order or there are missing rows");
         }
     }
-
-    true
 }

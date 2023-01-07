@@ -1,4 +1,5 @@
 mod table_parser;
+mod minterm;
 
 use table_parser::read_csv;
 
