@@ -1,36 +1,7 @@
+use crate::truth_table::TruthTable;
 use csv::Reader;
 
-pub struct TruthTable {
-    variables: Vec<String>,
-    inputs: Vec<Vec<bool>>,
-    output: Vec<bool>
-}
-
-impl TruthTable {
-    pub fn print_table(&self) {
-        self.variables.iter().for_each(|h| print!("{h}\t"));
-        println!();
-        self.inputs.iter().enumerate().for_each(
-            |(index, row)| {
-                row.iter().for_each(|cell| print!("{} \t", *cell as i8));
-                print!("{}", self.output[index] as i8);
-                println!();
-            }
-        );
-    }
-
-    pub fn get_header_at(&self, index: usize) -> &String {
-        match self.variables.get(index) {
-            Some(s) => s,
-            None => panic!(
-                "Failed to access table header. Tried to get [{index}] but size is {}",
-                self.variables.len()
-            )
-        }
-    }
-}
-
-pub fn read_csv(path: &str) -> TruthTable {
+pub fn read_csv(path: &str) -> (Vec<String>, Vec<Vec<bool>>, Vec<bool>) {
     let mut reader = Reader::from_path(path).expect("Error getting reader");
 
     let headers: Vec<String> = reader.headers().expect("Error getting headers")
@@ -54,7 +25,7 @@ pub fn read_csv(path: &str) -> TruthTable {
 
     assert_ascending_order(&inputs);
 
-    TruthTable { variables: headers, inputs, output }
+    (headers, inputs, output)
 }
 
 fn turn_input_into_boolean(c: &str) -> bool {

@@ -1,37 +1,58 @@
-use crate::table_parser::TruthTable;
+use crate::truth_table::TruthTable;
 
-struct MintermFragment<'a> {
-    from_table: &'a TruthTable,
-    referring_variable: usize, // index of corresponding variable at from_table
-    logic_load: bool // true -> A, false -> NOT A
+enum LogicLoad {
+    False,
+    True,
+    DontMatter
 }
 
-impl MintermFragment<'_> {
-    fn get_string_representation(self) -> String {
-        let mut s = String::new();
-        if ! self.logic_load {
-            s.push_str("!");
+struct MintermFragment {
+    variable_name: String,
+    // referring_variable: usize, // index of corresponding variable at from_table
+    logic_load: LogicLoad
+}
+
+impl MintermFragment {
+    fn get_string_representation(&self) -> String {
+        match self.logic_load {
+            LogicLoad::False => format!("!{}", self.variable_name),
+            LogicLoad::DontMatter => String::new(),
+            LogicLoad::True => self.variable_name.to_string()
         }
-
-        s.push_str(self.from_table.get_header_at(self.referring_variable));
-
-        s
     }
 }
 
-// struct Minterm<'a> {
-//     referring_headers: Vec<usize>, // index of headers who this minterm refers to
-//     from_table: &'a TruthTable
-// }
-//
-// impl Minterm {
-//     fn string_representation(self) -> String {
-//         let mut s = String::new();
-//
-//         for h in self.referring_headers.iter() {
-//             s.push_str(self.from_table.get_header_at(*h));
-//         }
-//
-//         s
-//     }
-// }
+pub struct Implicant {
+    variables_names: Vec<String>,
+    fragments: Vec<MintermFragment>
+}
+
+impl Implicant {
+    // this overload creates the first implicants, which are built from input rows.
+    pub fn new(row_of_inputs: &Vec<bool>, variables_names: Vec<String>) -> Self {
+        let mut fragments = Vec::new();
+
+        for (index, value) in row_of_inputs.iter().enumerate() {
+            let logic_load = if *value { LogicLoad::True } else { LogicLoad::False };
+            fragments.push(
+                MintermFragment {
+                    variable_name: variables_names[index].to_string(),
+                    // referring_variable: index,
+                    logic_load
+                }
+            );
+        }
+
+        Implicant { variables_names, fragments }
+    }
+
+    pub fn get_string_representation(&self) -> String {
+        let mut rep = String::new();
+
+        for frag in &self.fragments {
+            rep.push_str(frag.get_string_representation().as_str());
+        }
+
+        rep
+    }
+}
