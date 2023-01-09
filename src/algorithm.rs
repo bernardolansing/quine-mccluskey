@@ -1,6 +1,6 @@
 use std::borrow::Borrow;
 use crate::truth_table::TruthTable;
-use crate::minterm::Implicant;
+use crate::implicant::Implicant;
 
 struct GroupStructure {
     amount_of_groups: usize,
