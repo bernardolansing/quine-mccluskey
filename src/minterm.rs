@@ -16,9 +16,9 @@ impl LogicLoad {
     }
 }
 
+#[derive(Clone)]
 struct MintermFragment {
     variable_name: String,
-    // referring_variable: usize, // index of corresponding variable at from_table
     logic_load: LogicLoad
 }
 
@@ -38,18 +38,22 @@ impl MintermFragment {
             LogicLoad::True => String::from("1")
         }
     }
+
+    fn clone(&self) -> Self {
+        Self { variable_name: self.variable_name.clone(), logic_load: self.logic_load.clone() }
+    }
 }
 
+#[derive(Clone)]
 pub struct Implicant {
     variables_names: Vec<String>,
     fragments: Vec<MintermFragment>,
-    marked_as_prime: bool // a priori, will be set to false. Algorithm will set it to true
-    // if later verified that it is a prime.
+    marked_as_prime: bool
 }
 
 impl Implicant {
     pub fn is_prime(&self) -> bool { self.marked_as_prime }
-    pub fn mark_as_prime(&mut self) { self.marked_as_prime = true }
+    pub fn mark_as_prime(&mut self) { self.marked_as_prime = true; }
 
     // creates the first implicants, which are built from input rows.
     pub fn from_input(row_of_inputs: &Vec<bool>, variables_names: Vec<String>) -> Self {
@@ -98,6 +102,14 @@ impl Implicant {
         }
     }
 
+    pub fn clone(&self) -> Self {
+        Self {
+            variables_names: self.variables_names.clone(),
+            fragments: self.fragments.clone(),
+            marked_as_prime: false,
+        }
+    }
+
     pub fn amount_of_true_variables(&self) -> usize {
         self.fragments.iter()
             .filter(|frag| match frag.logic_load { LogicLoad::True => true, _ => false})
@@ -105,6 +117,8 @@ impl Implicant {
     }
 
     pub fn check_if_combines(&self, other: &Implicant) -> bool {
+        if self.marked_as_prime || other.marked_as_prime { return false; }
+
         let mut differences: usize = 0;
         for (self_var, other_var) in self.fragments.iter().zip(other.fragments.iter()) {
             match (&self_var.logic_load, &other_var.logic_load) {
