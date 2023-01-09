@@ -9,6 +9,9 @@ pub struct TruthTable {
 impl TruthTable {
     pub fn input_rows(&self) -> &Vec<Vec<bool>> { &self.inputs }
     pub fn variables_names(&self) -> Vec<String> { self.variables.clone() }
+    pub fn amount_of_variables(&self) -> usize {
+        self.inputs.get(0).unwrap_or(&Vec::new() as &Vec<bool>).len()
+    }
     pub fn row_value(&self, index: usize) -> bool {
         *self.output.get(index).expect("Not a valid row index")
     }

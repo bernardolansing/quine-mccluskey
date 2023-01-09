@@ -1,4 +1,3 @@
-use crate::truth_table::TruthTable;
 use csv::Reader;
 
 pub fn read_csv(path: &str) -> (Vec<String>, Vec<Vec<bool>>, Vec<bool>) {

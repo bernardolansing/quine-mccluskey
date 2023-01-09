@@ -20,6 +20,14 @@ impl MintermFragment {
             LogicLoad::True => self.variable_name.to_string()
         }
     }
+
+    fn get_binary_representation(&self) -> String {
+        match self.logic_load {
+            LogicLoad::False => String::from("0"),
+            LogicLoad::DontMatter => String::from("-"),
+            LogicLoad::True => String::from("1")
+        }
+    }
 }
 
 pub struct Implicant {
@@ -46,11 +54,27 @@ impl Implicant {
         Implicant { variables_names, fragments }
     }
 
+    pub fn amount_of_true_variables(&self) -> usize {
+        self.fragments.iter()
+            .filter(|frag| match frag.logic_load { LogicLoad::True => true, _ => false})
+            .count()
+    }
+
     pub fn get_string_representation(&self) -> String {
         let mut rep = String::new();
 
         for frag in &self.fragments {
             rep.push_str(frag.get_string_representation().as_str());
+        }
+
+        rep
+    }
+
+    pub fn get_binary_representation(&self) -> String {
+        let mut rep = String::new();
+
+        for frag in &self.fragments {
+            rep.push_str(frag.get_binary_representation().as_str());
         }
 
         rep
