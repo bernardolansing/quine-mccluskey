@@ -152,3 +152,15 @@ impl Implicant {
         rep
     }
 }
+
+impl PartialEq for Implicant {
+    fn eq(&self, other: &Self) -> bool {
+        for (self_var, other_var) in self.fragments.iter().zip(other.fragments.iter()) {
+            if ! self_var.logic_load.equals(&other_var.logic_load) {
+                return false;
+            }
+        }
+
+        true
+    }
+}

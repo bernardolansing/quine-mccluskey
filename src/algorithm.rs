@@ -43,7 +43,14 @@ impl GroupStructure {
                     if implicant.check_if_combines(candidate) {
                         found_combinable = true;
                         found_some_combinable_this_step = true;
-                        new_group.push(Implicant::from_implicants(implicant, candidate));
+                        let new_implicant = Implicant::from_implicants(implicant, candidate);
+
+                        // after step 3 of iteration, the same implicant start to appear
+                        // several times.
+                        if ! new_group.contains(&new_implicant) {
+                            new_group.push(new_implicant);
+                        }
+
                     }
                 }
 
