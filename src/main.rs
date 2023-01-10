@@ -3,6 +3,7 @@ mod implicant;
 mod truth_table;
 mod algorithm;
 mod groups_structure;
+mod coverage_map;
 
 use table_parser::read_csv;
 use truth_table::TruthTable;

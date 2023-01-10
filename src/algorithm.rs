@@ -2,11 +2,8 @@ use crate::truth_table::TruthTable;
 use crate::implicant::Implicant;
 use crate::table_parser::convert_boolean_row_to_number;
 use crate::groups_structure::GroupStructure;
-use prettytable::{Table, Row, Cell, Attr};
-
-const TABULATION_SIZE: u8 = 4;
-
-type CoverageMap = Vec<Vec<bool>>;
+use crate::coverage_map::CoverageMap;
+use prettytable::{Table, Row, Cell, Attr, AsTableSlice};
 
 pub fn algorithm(table: TruthTable) {
     let mut first_implicants: Vec<Implicant> = Vec::new();
@@ -37,8 +34,12 @@ pub fn algorithm(table: TruthTable) {
     println!("\nAll prime implicants were found. We will now search for the essential ones.");
     println!("This is the coverage map for all primes:");
     let primes = groups.extract_primes();
-    let coverage_map = produce_coverage_map(&primes, &first_implicants);
-    print_coverage_map(&coverage_map, &primes, &first_implicants);
+    let mut coverage_map = CoverageMap::new(&primes, &first_implicants);
+    coverage_map.print();
+
+    println!("\nEssential primes were marked in green:");
+    coverage_map.find_essentials();
+    coverage_map.print();
 }
 
 fn agroup(implicants: Vec<Implicant>, amount_of_variables: usize) -> GroupStructure {
@@ -48,49 +49,6 @@ fn agroup(implicants: Vec<Implicant>, amount_of_variables: usize) -> GroupStruct
     }
 
     groups
-}
-
-fn produce_coverage_map(
-    prime_implicants: &Vec<&Implicant>, basic_implicants: &Vec<Implicant>
-) -> CoverageMap {
-    let mut map: CoverageMap = Vec::new();
-
-    for prime in prime_implicants {
-        let mut row = Vec::new();
-        for minterm in basic_implicants {
-            row.push(prime.covers(minterm));
-        }
-        map.push(row);
-    }
-
-    map
-}
-
-fn print_coverage_map(map: &CoverageMap, primes: &Vec<&Implicant>, minterms: &Vec<Implicant>) {
-    let mut table = Table::new();
-
-    let mut header_row = Row::empty();
-    header_row.add_cell(Cell::new(""));
-    for minterm in minterms {
-        header_row.add_cell(Cell::new(format!("m{}", minterm.minterm_number()).as_str()));
-    }
-    table.add_row(header_row);
-
-    for (row_index, prime) in primes.iter().enumerate() {
-        let mut row = Vec::new();
-        row.push(Cell::new(prime.get_string_representation().as_str()));
-
-        for cover in &map[row_index] {
-            row.push(
-                // style_spec("c") sets alignment to center
-                Cell::new(if *cover { "X" } else { " " }).style_spec("c")
-            );
-        }
-
-        table.add_row(Row::new(row));
-    }
-
-    table.printstd();
 }
 
 fn assemble_expression(implicants: &Vec<Implicant>) -> String {
