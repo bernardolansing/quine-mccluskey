@@ -42,7 +42,7 @@ fn turn_input_into_boolean(c: &str) -> bool {
     }
 }
 
-fn convert_boolean_row_to_number(row: &[bool]) -> usize {
+pub fn convert_boolean_row_to_number(row: &[bool]) -> usize {
     let mut weight: u32 = 0;
     let mut sum: usize = 0;
 

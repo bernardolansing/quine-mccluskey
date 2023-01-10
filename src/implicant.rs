@@ -1,4 +1,5 @@
 use std::mem::discriminant;
+use crate::table_parser::convert_boolean_row_to_number;
 use crate::truth_table::TruthTable;
 
 #[derive(Copy, Clone)]
@@ -55,7 +56,7 @@ impl Implicant {
     pub fn is_prime(&self) -> bool { self.marked_as_prime }
     pub fn mark_as_prime(&mut self) { self.marked_as_prime = true; }
 
-    // creates the first implicants, which are built from input rows.
+    // creates the first implicants, which are minterms built from input rows.
     pub fn from_input(row_of_inputs: &Vec<bool>, variables_names: Vec<String>) -> Self {
         let mut fragments = Vec::new();
 
@@ -64,7 +65,6 @@ impl Implicant {
             fragments.push(
                 MintermFragment {
                     variable_name: variables_names[index].to_string(),
-                    // referring_variable: index,
                     logic_load
                 }
             );
@@ -116,6 +116,26 @@ impl Implicant {
             .count()
     }
 
+    // for implicants that are minterms, this method returns its associated number
+    // this number is the index of its corresponding row on the truth table (if it starts from
+    // least significative inputs towards the most significatives ones)
+    pub fn minterm_number(&self) -> usize {
+        let mut logic_loads = Vec::new();
+
+        for variable in &self.fragments {
+            match variable.logic_load {
+                LogicLoad::True => logic_loads.push(true),
+                LogicLoad::False => logic_loads.push(false),
+                LogicLoad::DontMatter => panic!(
+                    "This implicant is not equivalent to a minterm.\
+                    This method can only be called over minterms."
+                )
+            }
+        }
+
+        convert_boolean_row_to_number(logic_loads.as_slice())
+    }
+
     pub fn check_if_combines(&self, other: &Implicant) -> bool {
         if self.marked_as_prime || other.marked_as_prime { return false; }
 
@@ -130,6 +150,21 @@ impl Implicant {
         }
 
         differences == 1
+    }
+
+    // check if other implicant may be logically covered by self.
+    pub fn covers(&self, other: &Implicant) -> bool {
+        for (self_var, other_var) in self.fragments.iter().zip(other.fragments.iter()) {
+            let this_matches = match (self_var.logic_load, other_var.logic_load) {
+                (LogicLoad::True, LogicLoad::False) => false,
+                (LogicLoad::False, LogicLoad::True) => false,
+                _ => true
+            };
+
+            if ! this_matches { return false }
+        }
+
+        true
     }
 
     pub fn get_string_representation(&self) -> String {

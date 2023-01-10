@@ -1,6 +1,12 @@
 use std::borrow::Borrow;
 use crate::truth_table::TruthTable;
 use crate::implicant::Implicant;
+use crate::table_parser::convert_boolean_row_to_number;
+use prettytable::{Table, Row, Cell};
+
+const TABULATION_SIZE: u8 = 4;
+
+type CoverageMap = Vec<Vec<bool>>;
 
 struct GroupStructure {
     amount_of_groups: usize,
@@ -50,7 +56,6 @@ impl GroupStructure {
                         if ! new_group.contains(&new_implicant) {
                             new_group.push(new_implicant);
                         }
-
                     }
                 }
 
@@ -74,6 +79,25 @@ impl GroupStructure {
         self.groups = new_groups;
 
         found_some_combinable_this_step
+    }
+
+    fn extract_primes(&self) -> Vec<&Implicant> {
+        let mut primes = Vec::new();
+
+        for group in &self.groups {
+            for implicant in group {
+                if ! implicant.is_prime() {
+                    panic!("\
+                    Found an implicant that is not marked as prime. This method should\
+                    only be called after all combinations are made.\
+                    ");
+                }
+
+                primes.push(implicant);
+            }
+        }
+
+        primes
     }
 
     fn print_group(&self) {
@@ -107,7 +131,7 @@ pub fn algorithm(table: TruthTable) {
     println!("\nBeggining iterative optimization by Quine-McCluskey algorithm.");
     println!("Primes found will be marked with an *.");
     let amount_of_variables = table.amount_of_variables();
-    let mut groups = agroup(first_implicants, amount_of_variables);
+    let mut groups = agroup(first_implicants.clone(), amount_of_variables);
     groups.print_group();
 
     let mut iteration: usize = 1;
@@ -118,6 +142,12 @@ pub fn algorithm(table: TruthTable) {
         iteration += 1;
         if ! should_continue { break }
     }
+
+    println!("\nAll prime implicants were found. We will now search for the essential ones.");
+    println!("This is the coverage map for all primes:");
+    let primes = groups.extract_primes();
+    let coverage_map = produce_coverage_map(&primes, &first_implicants);
+    print_coverage_map(&coverage_map, &primes, &first_implicants);
 }
 
 fn agroup(implicants: Vec<Implicant>, amount_of_variables: usize) -> GroupStructure {
@@ -127,6 +157,48 @@ fn agroup(implicants: Vec<Implicant>, amount_of_variables: usize) -> GroupStruct
     }
 
     groups
+}
+
+fn produce_coverage_map(
+    prime_implicants: &Vec<&Implicant>, basic_implicants: &Vec<Implicant>
+) -> CoverageMap {
+    let mut map: CoverageMap = Vec::new();
+
+    for prime in prime_implicants {
+        let mut row = Vec::new();
+        for minterm in basic_implicants {
+            row.push(prime.covers(minterm));
+        }
+        map.push(row);
+    }
+
+    map
+}
+
+fn print_coverage_map(map: &CoverageMap, primes: &Vec<&Implicant>, minterms: &Vec<Implicant>) {
+    let mut table = Table::new();
+
+    let mut header_row = Row::empty();
+    header_row.add_cell(Cell::new(""));
+    for minterm in minterms {
+        header_row.add_cell(Cell::new(format!("m{}", minterm.minterm_number()).as_str()));
+    }
+    table.add_row(header_row);
+
+    for (row_index, prime) in primes.iter().enumerate() {
+        let mut row = Vec::new();
+        row.push(Cell::new(prime.get_string_representation().as_str()));
+
+        for cover in &map[row_index] {
+            row.push(Cell::new(
+                if *cover { "x" } else { " " }
+            ));
+        }
+
+        table.add_row(Row::new(row));
+    }
+
+    table.printstd();
 }
 
 fn assemble_expression(implicants: &Vec<Implicant>) -> String {
