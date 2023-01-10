@@ -2,6 +2,7 @@ mod table_parser;
 mod implicant;
 mod truth_table;
 mod algorithm;
+mod groups_structure;
 
 use table_parser::read_csv;
 use truth_table::TruthTable;
