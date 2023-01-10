@@ -1,9 +1,7 @@
 use crate::truth_table::TruthTable;
 use crate::implicant::Implicant;
-use crate::table_parser::convert_boolean_row_to_number;
 use crate::groups_structure::GroupStructure;
 use crate::coverage_map::CoverageMap;
-use prettytable::{Table, Row, Cell, Attr, AsTableSlice};
 
 pub fn algorithm(table: TruthTable) {
     let mut first_implicants: Vec<Implicant> = Vec::new();

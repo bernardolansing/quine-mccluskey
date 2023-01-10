@@ -1,6 +1,4 @@
-use std::mem::discriminant;
 use crate::table_parser::convert_boolean_row_to_number;
-use crate::truth_table::TruthTable;
 
 #[derive(Copy, Clone)]
 enum LogicLoad { False, True, DontMatter }

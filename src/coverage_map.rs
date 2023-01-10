@@ -1,7 +1,5 @@
-use prettytable::{Table, Row, Cell, Attr};
+use prettytable::{Table, Row, Cell};
 use crate::implicant::Implicant;
-
-const SELECTED_PRIME_COLOR: u32 = 0x10AA10;
 
 pub struct CoverageMap {
     map: Vec<Vec<bool>>,
@@ -93,7 +91,7 @@ impl CoverageMap {
             new_row.push(Cell::new(prime_name.as_str()).style_spec(row_spec));
 
             for cover in &self.map[row_index] {
-                let mut new_cell = Cell::new(if *cover { "X" } else { " " })
+                let new_cell = Cell::new(if *cover { "X" } else { " " })
                     .style_spec("c")
                     .style_spec(row_spec);
                 new_row.push(new_cell);
