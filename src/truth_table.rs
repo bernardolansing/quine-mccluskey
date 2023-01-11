@@ -32,14 +32,4 @@ impl TruthTable {
             }
         );
     }
-
-    pub fn get_header_at(&self, index: usize) -> &String {
-        match self.variables.get(index) {
-            Some(s) => s,
-            None => panic!(
-                "Failed to access table header. Tried to get [{index}] but size is {}",
-                self.variables.len()
-            )
-        }
-    }
 }

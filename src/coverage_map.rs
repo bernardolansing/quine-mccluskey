@@ -89,19 +89,13 @@ impl CoverageMap {
 
     fn covers_how_many_uncovered(&self, implicant_index: usize) -> usize {
         let mut covered_by_this_implicant = Vec::new();
-        &self.map[implicant_index].iter()
+        self.map[implicant_index].iter()
             .enumerate()
             .for_each(|(index, covers)| if *covers { covered_by_this_implicant.push(index) });
 
         covered_by_this_implicant.iter()
             .filter(|covered| ! self.covered_minterms.contains(covered))
             .count()
-    }
-
-    // equals to the amount
-    fn how_many_significative_variables(&self, implicant_index: usize) -> usize {
-        let implicant_name = &self.primes_names[implicant_index];
-        implicant_name.chars().filter(|c| *c != '-').count()
     }
 
     // after running find_essentials, we can now choose which of the remaining primes will

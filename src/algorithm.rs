@@ -1,4 +1,3 @@
-use std::borrow::Borrow;
 use crate::truth_table::TruthTable;
 use crate::implicant::Implicant;
 use crate::groups_structure::GroupStructure;
@@ -12,7 +11,10 @@ pub fn algorithm(table: TruthTable) {
         }
     }
 
-    println!("Function is defined by the unoptimized expression:");
+    println!("Read table from provided input:");
+    table.print_table();
+
+    println!("\nFunction is defined by the unoptimized expression:");
     let function_defining_expression = assemble_expression(
         &first_implicants.iter()
             .map(|ref_to_implicant| ref_to_implicant)
@@ -38,7 +40,7 @@ pub fn algorithm(table: TruthTable) {
 
     println!("\nAll prime implicants were found. We will now search for the essential ones.");
     println!("This is the coverage map for all primes:");
-    let mut primes = groups.extract_primes();
+    let primes = groups.extract_primes();
     let mut coverage_map = CoverageMap::new(&primes, &first_implicants);
     coverage_map.print();
 

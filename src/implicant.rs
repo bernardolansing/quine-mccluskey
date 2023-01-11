@@ -37,10 +37,6 @@ impl MintermFragment {
             LogicLoad::True => String::from("1")
         }
     }
-
-    fn clone(&self) -> Self {
-        Self { variable_name: self.variable_name.clone(), logic_load: self.logic_load.clone() }
-    }
 }
 
 #[derive(Clone)]
