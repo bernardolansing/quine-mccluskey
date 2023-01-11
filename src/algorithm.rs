@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use crate::truth_table::TruthTable;
 use crate::implicant::Implicant;
 use crate::groups_structure::GroupStructure;
@@ -12,7 +13,13 @@ pub fn algorithm(table: TruthTable) {
     }
 
     println!("Function is defined by the unoptimized expression:");
-    println!("{}", assemble_expression(&first_implicants));
+    let function_defining_expression = assemble_expression(
+        &first_implicants.iter()
+            .map(|ref_to_implicant| ref_to_implicant)
+            .collect::<Vec<&Implicant>>()
+            .as_slice()
+    );
+    println!("{}", function_defining_expression);
 
     println!("\nBeggining iterative optimization by Quine-McCluskey algorithm.");
     println!("Primes found will be marked with an *.");
@@ -31,13 +38,29 @@ pub fn algorithm(table: TruthTable) {
 
     println!("\nAll prime implicants were found. We will now search for the essential ones.");
     println!("This is the coverage map for all primes:");
-    let primes = groups.extract_primes();
+    let mut primes = groups.extract_primes();
     let mut coverage_map = CoverageMap::new(&primes, &first_implicants);
     coverage_map.print();
 
-    println!("\nEssential primes were marked in green:");
-    coverage_map.find_essentials();
+    let essentials_found = coverage_map.find_essentials();
+    println!("\nEssential primes were marked in green ({essentials_found} found):");
     coverage_map.print();
+
+    println!("\nArbitrary selection of implicants to cover the remaining minterms:");
+    coverage_map.choose_remaining_primes();
+    coverage_map.print();
+
+    println!(
+        "\nOptimization process is finished. An equivalent formula for the provided function is:"
+    );
+    let selected_implicants_indexes = coverage_map.get_selected_implicants();
+    let selected_implicants: Vec<&Implicant> = primes.iter()
+        .enumerate()
+        .filter(|(index, _)| selected_implicants_indexes.contains(index))
+        .map(|(_, prime)| prime)
+        .collect();
+    let final_formula = assemble_expression(selected_implicants.as_slice());
+    println!("{final_formula}");
 }
 
 fn agroup(implicants: Vec<Implicant>, amount_of_variables: usize) -> GroupStructure {
@@ -49,7 +72,7 @@ fn agroup(implicants: Vec<Implicant>, amount_of_variables: usize) -> GroupStruct
     groups
 }
 
-fn assemble_expression(implicants: &Vec<Implicant>) -> String {
+fn assemble_expression(implicants: &[&Implicant]) -> String {
     implicants.iter()
         .map(|implicant| implicant.get_string_representation())
         .collect::<Vec<String>>()

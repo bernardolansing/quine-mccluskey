@@ -5,11 +5,12 @@ pub struct CoverageMap {
     map: Vec<Vec<bool>>,
     selected_primes: Vec<usize>,
     primes_names: Vec<String>,
-    minterms_names: Vec<String>
+    minterms_names: Vec<String>,
+    covered_minterms: Vec<usize>
 }
 
 impl CoverageMap {
-    pub fn new(prime_implicants: &Vec<&Implicant>, basic_implicants: &Vec<Implicant>) -> Self {
+    pub fn new(prime_implicants: &Vec<Implicant>, basic_implicants: &Vec<Implicant>) -> Self {
         let mut map = Vec::new();
 
         let primes_names: Vec<String> = prime_implicants
@@ -30,8 +31,9 @@ impl CoverageMap {
         }
 
         let selected_primes = Vec::new();
+        let covered_minterms = Vec::new();
 
-        CoverageMap { map, primes_names, minterms_names, selected_primes }
+        CoverageMap { map, primes_names, minterms_names, selected_primes, covered_minterms }
     }
 
     // if some prime is the only who covers certain minterm, this prime is essential.
@@ -55,7 +57,7 @@ impl CoverageMap {
                 match covering_prime {
                     Some(prime_index) => {
                         if ! self.selected_primes.contains(&prime_index) {
-                            self.selected_primes.push(prime_index);
+                            self.select_implicant(prime_index);
                             essentials_found += 1;
                         }
                     },
@@ -69,6 +71,74 @@ impl CoverageMap {
 
         essentials_found
     }
+
+    fn select_implicant(&mut self, index: usize) {
+        if self.selected_primes.contains(&index) { return }
+        self.selected_primes.push(index);
+
+        let minterms_covered: Vec<usize> = (0..self.map[index].len())
+            .filter(|minterm_index| self.map[index][*minterm_index])
+            .collect();
+
+        for covered in minterms_covered {
+            if ! self.covered_minterms.contains(&covered) {
+                self.covered_minterms.push(covered);
+            }
+        }
+    }
+
+    fn covers_how_many_uncovered(&self, implicant_index: usize) -> usize {
+        let mut covered_by_this_implicant = Vec::new();
+        &self.map[implicant_index].iter()
+            .enumerate()
+            .for_each(|(index, covers)| if *covers { covered_by_this_implicant.push(index) });
+
+        covered_by_this_implicant.iter()
+            .filter(|covered| ! self.covered_minterms.contains(covered))
+            .count()
+    }
+
+    // equals to the amount
+    fn how_many_significative_variables(&self, implicant_index: usize) -> usize {
+        let implicant_name = &self.primes_names[implicant_index];
+        implicant_name.chars().filter(|c| *c != '-').count()
+    }
+
+    // after running find_essentials, we can now choose which of the remaining primes will
+    // be selected. for each uncovered minterm, we will choose one of the primes that covers
+    // more yet uncovered minterms.
+    pub fn choose_remaining_primes(&mut self) {
+        for minterm_index in 0..self.minterms_names.len() {
+            if self.covered_minterms.contains(&minterm_index) { continue }
+
+            // implicants that cover the yet uncovered minterm
+            let prime_candidates_indexes: Vec<usize> = (0..self.primes_names.len())
+                .filter(|index| self.map[*index][minterm_index])
+                .collect();
+
+            // we will want to select the candidate who covers the largest number of yet
+            // uncovered implicants. if many options are available, we will just
+            // select the first one.
+
+            let candidates_and_new_covertures: Vec<(usize, usize)> = prime_candidates_indexes.iter()
+                .map(|prime_index| (*prime_index, self.covers_how_many_uncovered(*prime_index)))
+                .collect();
+
+            let max_new_covertures = candidates_and_new_covertures.iter()
+                .map(|(_, new_cov)| new_cov)
+                .max()
+                .expect("Failed to find implicant that covers more uncovered minterms.");
+
+            let candidate_to_be_selected: usize = candidates_and_new_covertures.iter()
+                .find(|(_, cand_new_cov)| *cand_new_cov == *max_new_covertures)
+                .expect("Failed to find implicant who had the max new covers.")
+                .0;
+
+            self.select_implicant(candidate_to_be_selected);
+        }
+    }
+
+    pub fn get_selected_implicants(&self) -> &Vec<usize> { &self.selected_primes }
 
     pub fn print(&self) {
         let mut table = Table::new();

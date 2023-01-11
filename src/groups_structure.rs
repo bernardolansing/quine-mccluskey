@@ -73,19 +73,19 @@ impl GroupStructure {
         found_some_combinable_this_step
     }
 
-    pub fn extract_primes(&self) -> Vec<&Implicant> {
+    pub fn extract_primes(&mut self) -> Vec<Implicant> {
         let mut primes = Vec::new();
 
-        for group in &self.groups {
-            for implicant in group {
-                if ! implicant.is_prime() {
+        for group in self.groups.iter_mut() {
+            for index in (0..group.len()).into_iter().rev() {
+                if ! group[index].is_prime() {
                     panic!("\
                     Found an implicant that is not marked as prime. This method should\
                     only be called after all combinations are made.\
                     ");
                 }
 
-                primes.push(implicant);
+                primes.push(group.remove(index));
             }
         }
 

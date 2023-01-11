@@ -1,3 +1,5 @@
+extern crate core;
+
 mod table_parser;
 mod implicant;
 mod truth_table;

@@ -110,7 +110,7 @@ impl Implicant {
 
     pub fn amount_of_true_variables(&self) -> usize {
         self.fragments.iter()
-            .filter(|frag| match frag.logic_load { LogicLoad::True => true, _ => false})
+            .filter(|frag| match frag.logic_load { LogicLoad::True => true, _ => false })
             .count()
     }
 
