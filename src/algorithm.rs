@@ -5,7 +5,7 @@ use crate::coverage_map::CoverageMap;
 use std::io;
 use std::io::{Stdin, Write};
 
-pub fn algorithm(table: TruthTable, step_by_step: bool) {
+pub fn algorithm(table: TruthTable, step_by_step: bool) -> String {
     let mut first_implicants: Vec<Implicant> = Vec::new();
     for (index, row) in table.input_rows().iter().enumerate() {
         if table.row_value(index) {
@@ -78,6 +78,8 @@ pub fn algorithm(table: TruthTable, step_by_step: bool) {
         .collect();
     let final_formula = assemble_expression(selected_implicants.as_slice());
     println!("{final_formula}");
+
+    final_formula
 }
 
 fn agroup(implicants: Vec<Implicant>, amount_of_variables: usize) -> GroupStructure {
