@@ -7,6 +7,7 @@ mod algorithm;
 mod groups_structure;
 mod coverage_map;
 
+use std::collections::{HashMap, HashSet};
 use truth_table::TruthTable;
 use algorithm::algorithm;
 use std::env;
@@ -20,7 +21,15 @@ fn main() {
         Some(path) => path,
         None => panic!("Please, provide a filepath to a truth table (has to be .csv).")
     };
-    let table = TruthTable::from_csv(filepath.as_str());
 
-    algorithm(table);
+    let mut step_by_step = false;
+
+    for arg in args {
+        if arg.as_str() == "--step-by-step" {
+            step_by_step = true;
+        }
+    }
+
+    let table = TruthTable::from_csv(filepath.as_str());
+    algorithm(table, step_by_step);
 }

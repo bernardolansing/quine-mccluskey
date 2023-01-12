@@ -2,8 +2,10 @@ use crate::truth_table::TruthTable;
 use crate::implicant::Implicant;
 use crate::groups_structure::GroupStructure;
 use crate::coverage_map::CoverageMap;
+use std::io;
+use std::io::{Stdin, Write};
 
-pub fn algorithm(table: TruthTable) {
+pub fn algorithm(table: TruthTable, step_by_step: bool) {
     let mut first_implicants: Vec<Implicant> = Vec::new();
     for (index, row) in table.input_rows().iter().enumerate() {
         if table.row_value(index) {
@@ -14,6 +16,8 @@ pub fn algorithm(table: TruthTable) {
     println!("Read table from provided input:");
     table.print_table();
 
+    if step_by_step { wait_for_user_advance() }
+
     println!("\nFunction is defined by the unoptimized expression:");
     let function_defining_expression = assemble_expression(
         &first_implicants.iter()
@@ -23,11 +27,15 @@ pub fn algorithm(table: TruthTable) {
     );
     println!("{}", function_defining_expression);
 
+    if step_by_step { wait_for_user_advance() }
+
     println!("\nBeggining iterative optimization by Quine-McCluskey algorithm.");
     println!("Primes found will be marked with an *.");
     let amount_of_variables = table.amount_of_variables();
     let mut groups = agroup(first_implicants.clone(), amount_of_variables);
     groups.print_group();
+
+    if step_by_step { wait_for_user_advance() }
 
     let mut iteration: usize = 1;
     loop {
@@ -35,6 +43,7 @@ pub fn algorithm(table: TruthTable) {
         let should_continue = groups.combination_step();
         groups.print_group();
         iteration += 1;
+        if step_by_step { wait_for_user_advance() }
         if ! should_continue { break }
     }
 
@@ -44,13 +53,19 @@ pub fn algorithm(table: TruthTable) {
     let mut coverage_map = CoverageMap::new(&primes, &first_implicants);
     coverage_map.print();
 
+    if step_by_step { wait_for_user_advance() }
+
     let essentials_found = coverage_map.find_essentials();
     println!("\nEssential primes were marked in green ({essentials_found} found):");
     coverage_map.print();
 
+    if step_by_step { wait_for_user_advance() }
+
     println!("\nArbitrary selection of implicants to cover the remaining minterms:");
     coverage_map.choose_remaining_primes();
     coverage_map.print();
+
+    if step_by_step { wait_for_user_advance() }
 
     println!(
         "\nOptimization process is finished. An equivalent formula for the provided function is:"
@@ -79,4 +94,14 @@ fn assemble_expression(implicants: &[&Implicant]) -> String {
         .map(|implicant| implicant.get_string_representation())
         .collect::<Vec<String>>()
         .join(" + ")
+}
+
+fn wait_for_user_advance() {
+    let mut stdin = io::stdin();
+    let mut stdout = io::stdout();
+
+    write!(stdout, "\nPress any key to continue.").unwrap();
+    stdout.flush().unwrap();
+
+    let _ = stdin.read_line(&mut String::new()).unwrap();
 }
