@@ -3,7 +3,7 @@ use crate::implicant::Implicant;
 use crate::groups_structure::GroupStructure;
 use crate::coverage_map::CoverageMap;
 use std::io;
-use std::io::{Stdin, Write};
+use std::io::{Write};
 
 pub fn algorithm(table: TruthTable, step_by_step: bool) -> String {
     let mut first_implicants: Vec<Implicant> = Vec::new();
@@ -99,7 +99,7 @@ fn assemble_expression(implicants: &[&Implicant]) -> String {
 }
 
 fn wait_for_user_advance() {
-    let mut stdin = io::stdin();
+    let stdin = io::stdin();
     let mut stdout = io::stdout();
 
     write!(stdout, "\nPress any key to continue.").unwrap();

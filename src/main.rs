@@ -1,5 +1,3 @@
-// extern crate core;
-
 mod table_parser;
 mod implicant;
 mod truth_table;
@@ -7,7 +5,6 @@ mod algorithm;
 mod groups_structure;
 mod coverage_map;
 
-use std::collections::{HashMap, HashSet};
 use truth_table::TruthTable;
 use algorithm::algorithm;
 use std::env;
